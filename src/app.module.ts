@@ -1,12 +1,30 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { QueueController } from './queue/queue.controller';
 import { QueueModule } from './queue/queue.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import databaseConfig from './db/database.config';
+import { InternalApiGuard } from './guards/internal-api.guard';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
-  imports: [QueueModule],
-  controllers: [AppController, QueueController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [databaseConfig],
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) =>
+        configService.get('database'),
+      inject: [ConfigService],
+    }),
+    QueueModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: InternalApiGuard,
+    },
+  ],
 })
 export class AppModule {}
