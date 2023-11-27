@@ -7,24 +7,27 @@ import {
   Body,
   UseGuards,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { CreateQueueDTO } from './dtos/create-queue.dto';
 import { QueueService } from './queue.service';
-import { UpdateQueueDTO } from './dtos/udate-quote.dto';
+import { UpdateQueueDTO } from './dtos/udate-queue.dto';
 import { QueueOwnerGuard } from './guards/queue-owner-guard';
+import { AddUserDTO } from './dtos/add-user.dto';
+import { ReplaceUserPositionDTO } from './dtos/replace-user-position.dto';
+import { QueueOwnerOrParticipantGuard } from './guards/queue-owner-or-participant.guard';
 
 @Controller('api')
 export class QueueController {
   constructor(private readonly queueService: QueueService) {}
 
   @Get(':id')
-  @UseGuards(QueueOwnerGuard)
+  @UseGuards(QueueOwnerOrParticipantGuard)
   get(@Param('id') id: string) {
     return this.queueService.findById(id);
   }
 
   @Get('')
-  @UseGuards(QueueOwnerGuard)
   listByOwner(@Query('ownerId') ownerId: string) {
     return this.queueService.listByOwner(ownerId);
   }
@@ -34,9 +37,40 @@ export class QueueController {
     return this.queueService.create(createQueueDTO);
   }
 
+  @Post(':id/user')
+  addUser(@Param('id') id: string, @Body() addUserDTO: AddUserDTO) {
+    return this.queueService.addUser(id, addUserDTO.userId);
+  }
+
+  @Put(':id/users/:user_id/replace_position')
+  @UseGuards(QueueOwnerGuard)
+  replaceUserPosition(
+    @Param('id') id: string,
+    @Param('user_id') userId: string,
+    @Body() replaceUserPositionDTO: ReplaceUserPositionDTO,
+  ) {
+    return this.queueService.replaceUserPosition(
+      id,
+      userId,
+      replaceUserPositionDTO.newPosition,
+    );
+  }
+
   @Put(':id')
   @UseGuards(QueueOwnerGuard)
   update(@Body() updateQueueDTO: UpdateQueueDTO, @Param('id') id: string) {
     return this.queueService.update(id, updateQueueDTO);
+  }
+
+  @Delete(':id')
+  @UseGuards(QueueOwnerGuard)
+  delete(@Param('id') id: string) {
+    return this.queueService.delete(id);
+  }
+
+  @Delete(':id/user/:user_id')
+  @UseGuards(QueueOwnerGuard)
+  removeUser(@Param('id') id: string, @Body() addUserDTO: AddUserDTO) {
+    return this.queueService.addUser(id, addUserDTO.userId);
   }
 }

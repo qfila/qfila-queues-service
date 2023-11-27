@@ -9,7 +9,7 @@ const config = {
   database: process.env.DATABASE_NAME,
   entities: [`${__dirname}/../**/*.entity{.ts,.js}`],
   migrations: [`${__dirname}/../migrations/*{.ts,.js}`],
-  synchronize: process.env.NODE_ENV === 'development',
+  synchronize: false,
   logging: process.env.NODE_ENV === 'development',
   migrationsTableName: 'migrations',
 };

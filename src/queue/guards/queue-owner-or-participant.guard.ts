@@ -10,7 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { QueueService } from '../queue.service';
 
 @Injectable()
-export class QueueOwnerGuard implements CanActivate {
+export class QueueOwnerOrParticipantGuard implements CanActivate {
   constructor(
     private readonly configService: ConfigService,
     private readonly queueService: QueueService,
@@ -33,7 +33,16 @@ export class QueueOwnerGuard implements CanActivate {
 
       if (!queue) throw new NotFoundException('Fila não foi encontrada');
 
-      if (queue.ownerId !== userId) throw new Error();
+      const participants = await this.queueService.findParticipantsByQueueId(
+        queue.id,
+      );
+
+      const isOwner = queue.ownerId === userId;
+      const isParticipant = !!participants.find(
+        (participant) => participant.userId === userId,
+      );
+
+      if (!isOwner && !isParticipant) throw new Error();
     } catch (e) {
       if (e instanceof HttpException) throw e;
 

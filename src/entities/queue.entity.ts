@@ -11,11 +11,11 @@ export class Queue {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ length: 63 })
-  title: string;
-
   @Column({ type: 'uuid', name: 'owner_id' })
   ownerId: string;
+
+  @Column({ length: 63 })
+  title: string;
 
   @Column({ length: 255 })
   description: string;
