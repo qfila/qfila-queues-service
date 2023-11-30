@@ -38,6 +38,29 @@ export class QueueService {
     return { ...queue, participantsCount: participants.length, participants };
   }
 
+  async findByCode(code: string, userId: string) {
+    const queue = await this.queueRepository.findOneBy({ code });
+
+    const queueUsers = await this.queueUserRepository.find({
+      where: { queueId: queue.id },
+    });
+
+    const isParticipant = !!queueUsers.find(
+      (queueUser) => queueUser.userId === userId,
+    );
+
+    if (!isParticipant || queue.ownerId !== userId) {
+      throw new ForbiddenException('Ação indisponível');
+    }
+
+    const participants = await this.findParticipantsByQueueUsers(queueUsers);
+
+    if (isParticipant)
+      return { ...queue, participantsCount: participants.length };
+
+    return { ...queue, participantsCount: participants.length, participants };
+  }
+
   async listByOwner(ownerId: string) {
     await this.validateOwner(ownerId);
 
@@ -62,9 +85,14 @@ export class QueueService {
 
   async create(createQueueDTO: CreateQueueDTO) {
     await this.validateOwner(createQueueDTO.ownerId);
-    // await this.validateQueueWithSameTitle(createQueueDTO.title);
+    await this.validateQueueWithSameTitle(createQueueDTO.title);
 
-    const queueToCreate = this.queueRepository.create(createQueueDTO);
+    const code = await this.generateNewCode();
+
+    const queueToCreate = this.queueRepository.create({
+      ...createQueueDTO,
+      code,
+    });
 
     const createdQueue = await this.queueRepository.save(queueToCreate);
 
@@ -84,10 +112,10 @@ export class QueueService {
     return { success: true };
   }
 
-  async addUser(queueId: string, userId: string) {
+  async addUser(queueCode: string, userId: string) {
     try {
       const { queueMembers, memberToInsert, queue } =
-        await this.validateUserAddition(queueId, userId);
+        await this.validateUserAddition(queueCode, userId);
 
       await this.queueUserRepository.save({
         position: queueMembers.length + 1,
@@ -95,7 +123,7 @@ export class QueueService {
         userId: memberToInsert.id,
       });
 
-      return { success: true };
+      return { success: true, queueId: queue.id };
     } catch (e) {
       console.error('-=-= ERRO no método QueueService.addUser', e.data);
 
@@ -103,6 +131,33 @@ export class QueueService {
 
       throw new BadRequestException('Não foi possível entrar na fila');
     }
+  }
+
+  async removeUser(queueId: string, userId: string) {
+    const queueMembers = await this.queueUserRepository.findBy({
+      queueId,
+      exited: false,
+    });
+
+    const memberToRemove = queueMembers.find((member) => member.id === userId);
+
+    await this.queueUserRepository.manager.transaction(async (manager) => {
+      queueMembers.forEach(async (queueMember) => {
+        if (queueMember.position > memberToRemove.position) {
+          await manager.update(
+            QueueUser,
+            { userId: queueMember.userId },
+            { position: queueMember.position - 1 },
+          );
+        }
+      });
+
+      await manager.update(
+        QueueUser,
+        { userId: memberToRemove },
+        { exited: true },
+      );
+    });
   }
 
   async replaceUserPosition(
@@ -175,9 +230,9 @@ export class QueueService {
     });
   }
 
-  private async validateUserAddition(queueId: string, userId: string) {
+  private async validateUserAddition(queueCode: string, userId: string) {
     const queue = await this.queueRepository.findOneOrFail({
-      where: { id: queueId },
+      where: { code: queueCode },
     });
 
     const memberToInsert = await this.httpService.findUserById(userId);
@@ -211,6 +266,25 @@ export class QueueService {
       memberToInsert,
       queueMembers,
     };
+  }
+
+  private async generateNewCode(): Promise<string> {
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+
+    const randomInt = () => Math.floor(Math.random() * 10) + 1;
+
+    let code = '';
+
+    for (let i = 0; i < 6; i++) {
+      if (i % 2) code += letters[randomInt()];
+      else code += String(randomInt());
+    }
+
+    const queueWithSameCode = await this.queueRepository.findOneBy({ code });
+
+    if (queueWithSameCode) return await this.generateNewCode();
+
+    return code;
   }
 
   private async validateQueueWithSameTitle(title: string) {

@@ -28,8 +28,10 @@ export class QueueController {
   }
 
   @Get('')
-  listByOwner(@Query('ownerId') ownerId: string) {
-    return this.queueService.listByOwner(ownerId);
+  listByOwner(@Query('userId') userId: string, @Query('code') code?: string) {
+    if (code) return this.queueService.findByCode(code, userId);
+
+    return this.queueService.listByOwner(userId);
   }
 
   @Post()
@@ -37,9 +39,9 @@ export class QueueController {
     return this.queueService.create(createQueueDTO);
   }
 
-  @Post(':id/user')
-  addUser(@Param('id') id: string, @Body() addUserDTO: AddUserDTO) {
-    return this.queueService.addUser(id, addUserDTO.userId);
+  @Post(':code/user')
+  addUser(@Param('code') code: string, @Body() addUserDTO: AddUserDTO) {
+    return this.queueService.addUser(code, addUserDTO.userId);
   }
 
   @Put(':id/users/:user_id/replace_position')

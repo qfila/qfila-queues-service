@@ -14,6 +14,9 @@ export class Queue {
   @Column({ type: 'uuid', name: 'owner_id' })
   ownerId: string;
 
+  @Column({ length: 6 })
+  code: string;
+
   @Column({ length: 63 })
   title: string;
 
