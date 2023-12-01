@@ -15,7 +15,7 @@ export default new DataSource({
   database: configService.get('DATABASE_NAME'),
   entities: [`${__dirname}/../**/*.entity{.ts,.js}`],
   synchronize: false,
-  logging: configService.get('NODE_ENV') === 'development',
+  logging: false,
   migrations: [`${__dirname}/migrations/*{.ts,.js}`],
   migrationsTableName: 'migrations',
 });

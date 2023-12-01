@@ -35,8 +35,6 @@ export class QueueService {
 
     const participants = await this.findParticipantsByQueueUsers(queueUsers);
 
-    console.log(participants);
-
     return { ...queue, participantsCount: participants.length, participants };
   }
 
@@ -186,22 +184,41 @@ export class QueueService {
 
     const member = queueMembers.find((member) => member.userId === userId);
 
+    console.log('Member', member);
+
     if (!member) throw new BadRequestException('Usuário não pertence à fila');
 
     await this.queueUserRepository.manager.transaction(async (manager) => {
-      const users = await manager.findBy(QueueUser, { queueId });
+      const users = await manager.findBy(QueueUser, { queueId, exited: false });
 
-      users.forEach(async (user) => {
-        if (user.userId === userId) return;
-
-        if (user.position >= newPosition) {
-          await manager.update(
-            QueueUser,
-            { userId: user.userId },
-            { position: user.position + 1 },
-          );
+      for (const user of users) {
+        if (user.userId !== userId) {
+          // Se o usuário está indo para uma posição maior que sua atual
+          if (newPosition > member.position) {
+            if (
+              user.position > member.position &&
+              user.position <= newPosition
+            ) {
+              await manager.update(
+                QueueUser,
+                { userId: user.userId },
+                { position: user.position - 1 },
+              );
+            }
+          } else {
+            if (
+              user.position >= newPosition &&
+              user.position < member.position
+            ) {
+              await manager.update(
+                QueueUser,
+                { userId: user.userId },
+                { position: user.position + 1 },
+              );
+            }
+          }
         }
-      });
+      }
 
       await manager.update(QueueUser, { userId }, { position: newPosition });
     });

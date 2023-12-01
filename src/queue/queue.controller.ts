@@ -16,6 +16,7 @@ import { QueueOwnerGuard } from './guards/queue-owner-guard';
 import { AddUserDTO } from './dtos/add-user.dto';
 import { ReplaceUserPositionDTO } from './dtos/replace-user-position.dto';
 import { QueueOwnerOrParticipantGuard } from './guards/queue-owner-or-participant.guard';
+import { QueueParticipantGuard } from './guards/queue-participant-guard';
 
 @Controller('api')
 export class QueueController {
@@ -73,6 +74,12 @@ export class QueueController {
   @Delete(':id/user/:userId')
   @UseGuards(QueueOwnerGuard)
   removeUser(@Param('id') id: string, @Param('userId') userId: string) {
+    return this.queueService.removeUser(id, userId);
+  }
+
+  @Post(':id/exit')
+  @UseGuards(QueueParticipantGuard)
+  exit(@Param('code') id: string, @Query('userId') userId: string) {
     return this.queueService.removeUser(id, userId);
   }
 }
