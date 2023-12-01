@@ -45,18 +45,22 @@ export class QueueService {
       where: { queueId: queue.id },
     });
 
-    const isParticipant = !!queueUsers.find(
+    const participant = queueUsers.find(
       (queueUser) => queueUser.userId === userId,
     );
 
-    if (!isParticipant || queue.ownerId !== userId) {
+    if (!participant && queue.ownerId !== userId) {
       throw new ForbiddenException('Ação indisponível');
     }
 
     const participants = await this.findParticipantsByQueueUsers(queueUsers);
 
-    if (isParticipant)
-      return { ...queue, participantsCount: participants.length };
+    if (participant)
+      return {
+        ...queue,
+        participantsCount: participants.length,
+        currentPosition: participant.position,
+      };
 
     return { ...queue, participantsCount: participants.length, participants };
   }
