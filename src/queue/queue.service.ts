@@ -30,7 +30,7 @@ export class QueueService {
     const queue = await this.queueRepository.findOneBy({ id });
 
     const queueUsers = await this.queueUserRepository.find({
-      where: { queueId: queue.id },
+      where: { queueId: queue.id, exited: false },
     });
 
     const participants = await this.findParticipantsByQueueUsers(queueUsers);
@@ -42,7 +42,7 @@ export class QueueService {
     const queue = await this.queueRepository.findOneBy({ code });
 
     const queueUsers = await this.queueUserRepository.find({
-      where: { queueId: queue.id },
+      where: { queueId: queue.id, exited: false },
     });
 
     const participant = queueUsers.find(
@@ -143,10 +143,17 @@ export class QueueService {
       exited: false,
     });
 
-    const memberToRemove = queueMembers.find((member) => member.id === userId);
+    const memberToRemove = queueMembers.find(
+      (member) => member.userId === userId,
+    );
+
+    if (!memberToRemove)
+      return new NotFoundException('Usuário não está na fila');
 
     await this.queueUserRepository.manager.transaction(async (manager) => {
       queueMembers.forEach(async (queueMember) => {
+        if (queueMember.userId === userId) return;
+
         if (queueMember.position > memberToRemove.position) {
           await manager.update(
             QueueUser,
@@ -158,7 +165,7 @@ export class QueueService {
 
       await manager.update(
         QueueUser,
-        { userId: memberToRemove },
+        { userId: memberToRemove.userId },
         { exited: true },
       );
     });

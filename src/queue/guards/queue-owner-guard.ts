@@ -23,6 +23,8 @@ export class QueueOwnerGuard implements CanActivate {
 
     if (req.query.userId) userId = req.query.userId;
     if (req.body.userId) userId = req.body.userId;
+    if (req.params.userId) userId = req.params.userId;
+    if (req.query.ownerId) userId = req.query.ownerId;
 
     if (!userId) return false;
 

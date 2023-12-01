@@ -70,9 +70,9 @@ export class QueueController {
     return this.queueService.delete(id);
   }
 
-  @Delete(':id/user/:user_id')
+  @Delete(':id/user/:userId')
   @UseGuards(QueueOwnerGuard)
-  removeUser(@Param('id') id: string, @Body() addUserDTO: AddUserDTO) {
-    return this.queueService.addUser(id, addUserDTO.userId);
+  removeUser(@Param('id') id: string, @Param('userId') userId: string) {
+    return this.queueService.removeUser(id, userId);
   }
 }
