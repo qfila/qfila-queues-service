@@ -35,6 +35,8 @@ export class QueueService {
 
     const participants = await this.findParticipantsByQueueUsers(queueUsers);
 
+    console.log(participants);
+
     return { ...queue, participantsCount: participants.length, participants };
   }
 
@@ -60,6 +62,7 @@ export class QueueService {
         ...queue,
         participantsCount: participants.length,
         currentPosition: participant.position,
+        joinedAt: participant.created_at,
       };
 
     return { ...queue, participantsCount: participants.length, participants };
@@ -77,7 +80,7 @@ export class QueueService {
     const queuesWithParticipantsNumber = await Promise.all(
       queues.map(async (queue) => {
         const participantsCount = await this.queueUserRepository.count({
-          where: { queueId: queue.id },
+          where: { queueId: queue.id, exited: false },
         });
 
         return { ...queue, participantsCount };
@@ -229,16 +232,19 @@ export class QueueService {
     // os usuários com os ids do array acima
     const users = await this.httpService.findUsersInfosByIds(userIds);
 
-    return queueUsers.map((queueUser) => {
-      const user = users.find((user) => user.id === queueUser.userId);
+    return queueUsers
+      .map((queueUser) => {
+        const user = users.find((user) => user.id === queueUser.userId);
 
-      return {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        joined_at: queueUser.created_at,
-      };
-    });
+        return {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          joined_at: queueUser.created_at,
+          position: queueUser.position,
+        };
+      })
+      .sort((curr, prev) => curr.position - prev.position);
   }
 
   private async validateUserAddition(queueCode: string, userId: string) {
