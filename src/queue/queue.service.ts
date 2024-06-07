@@ -184,8 +184,6 @@ export class QueueService {
 
     const member = queueMembers.find((member) => member.userId === userId);
 
-    console.log('Member', member);
-
     if (!member) throw new BadRequestException('Usuário não pertence à fila');
 
     await this.queueUserRepository.manager.transaction(async (manager) => {
