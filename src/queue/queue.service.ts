@@ -305,7 +305,7 @@ export class QueueService {
   private async generateNewCode(): Promise<string> {
     const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 
-    const randomInt = () => Math.floor(Math.random() * 10) + 1;
+    const randomInt = () => Math.floor(Math.random() * 10);
 
     let code = '';
 
