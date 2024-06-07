@@ -131,7 +131,7 @@ export class QueueService {
 
       return { success: true, queueId: queue.id };
     } catch (e) {
-      console.error('-=-= ERRO no método QueueService.addUser', e.data);
+      console.error('-=-= ERRO no método QueueService.addUser', e);
 
       if (e instanceof HttpException) throw e;
 
