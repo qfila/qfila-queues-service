@@ -124,6 +124,7 @@ export class QueueService {
         await this.validateUserAddition(queueCode, userId);
 
       await this.queueUserRepository.save({
+        id: crypto.randomUUID(),
         position: queueMembers.length + 1,
         queueId: queue.id,
         userId: memberToInsert.id,
