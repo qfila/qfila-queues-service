@@ -96,6 +96,7 @@ export class QueueService {
 
     const queueToCreate = this.queueRepository.create({
       ...createQueueDTO,
+      id: crypto.randomUUID(),
       code,
     });
 
