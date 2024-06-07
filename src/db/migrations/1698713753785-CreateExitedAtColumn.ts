@@ -5,13 +5,11 @@ export class CreateExitedAtColumn1698713753785 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE \`queue_user\` ADD \`exited_at\` date NULL`,
+      `ALTER TABLE "queue_user" ADD "exited_at" date NULL`,
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE \`queue_user\` DROP COLUMN \`exited_at\``,
-    );
+    await queryRunner.query(`ALTER TABLE "queue_user" DROP COLUMN "exited_at"`);
   }
 }

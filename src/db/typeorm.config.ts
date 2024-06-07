@@ -7,7 +7,7 @@ config();
 const configService = new ConfigService();
 
 export default new DataSource({
-  type: 'mysql',
+  type: 'postgres',
   host: configService.get('DATABASE_HOST'),
   port: configService.get('DATABASE_PORT'),
   username: configService.get('DATABASE_USERNAME'),

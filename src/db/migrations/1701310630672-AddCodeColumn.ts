@@ -5,11 +5,11 @@ export class AddCodeColumn1701310630672 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE \`queue\` ADD \`code\` varchar(6) NOT NULL`,
+      `ALTER TABLE "queue" ADD "code" varchar(6) NOT NULL`,
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE \`queue\` DROP COLUMN \`code\``);
+    await queryRunner.query(`ALTER TABLE "queue" DROP COLUMN "code"`);
   }
 }

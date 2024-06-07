@@ -5,11 +5,20 @@ export class CreateUserQueueTable1698703505237 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `CREATE TABLE \`queue_user\` (\`id\` varchar(36) NOT NULL, \`queue_id\` varchar(255) NOT NULL, \`user_id\` varchar(255) NOT NULL, \`exited\` tinyint NOT NULL DEFAULT 0, \`position\` smallint NOT NULL, \`created_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), \`updated_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6), PRIMARY KEY (\`id\`)) ENGINE=InnoDB`,
+      `CREATE TABLE "queue_user" (
+        "id" uuid NOT NULL,
+        "queue_id" varchar(255) NOT NULL,
+        "user_id" varchar(255) NOT NULL,
+        "exited" boolean NOT NULL DEFAULT false,
+        "position" smallint NOT NULL,
+        "created_at" timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updated_at" timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "PK_queue_user_id" PRIMARY KEY ("id")
+      )`,
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE \`queue_user\``);
+    await queryRunner.query(`DROP TABLE "queue_user"`);
   }
 }
