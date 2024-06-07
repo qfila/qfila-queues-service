@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { registerAs } from '@nestjs/config';
 const config = {
-  type: 'mysql',
+  type: process.env.DATABASE_TYPE || 'mysql',
   host: process.env.DATABASE_HOST || 'localhost',
   port: process.env.DATABASE_PORT || 3306,
   username: process.env.DATABASE_USERNAME,
